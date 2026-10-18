@@ -240,9 +240,10 @@ static double Quantile(std::vector<double> samples, double fraction) {
     return samples[static_cast<size_t>(std::ceil(fraction * samples.size())) - 1];
 }
 
-static bool CopyBool(VTSessionRef session, CFStringRef key, bool &value) {
+static bool CopyBool(VTSessionRef session, CFStringRef key, bool &value, OSStatus *queryStatus = nullptr) {
     CFTypeRef result = nullptr;
     const OSStatus status = VTSessionCopyProperty(session, key, nullptr, &result);
+    if (queryStatus) *queryStatus = status;
     const bool ok = !status && result && CFGetTypeID(result) == CFBooleanGetTypeID();
     value = ok && CFBooleanGetValue(static_cast<CFBooleanRef>(result));
     if (result) CFRelease(result);
@@ -303,6 +304,8 @@ int main(int argc, const char **argv) { @autoreleasepool {
     NSString *selected = @"";
     NSString *loadedSHA = @"";
     bool hardware = false, decoderHardware = false, decoderQuery = false;
+    bool decoderHardwareDisabledBySpec = false;
+    OSStatus decoderQueryStatus = kVTInvalidSessionErr;
     int encoded = 0, decoded = 0, verified = 0, forced = 0, forcedPassed = 0, idrs = 0;
     int callbackErrors = 0, dropped = 0;
     Pixels maximum;
@@ -384,14 +387,25 @@ int main(int argc, const char **argv) { @autoreleasepool {
             }
             if (!decoder) {
                 VTDecompressionOutputCallbackRecord callback = {Decoded, &run};
-                NSDictionary *decodeSpec = @{(__bridge NSString *)kVTVideoDecoderSpecification_EnableHardwareAcceleratedVideoDecoder: @NO};
+                NSDictionary *decodeSpec = @{(__bridge NSString *)kVTVideoDecoderSpecification_EnableHardwareAcceleratedVideoDecoder:
+                    (__bridge id)kCFBooleanFalse};
                 NSDictionary *decodeAttrs = @{(__bridge NSString *)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)};
                 status = VTDecompressionSessionCreate(kCFAllocatorDefault, CMSampleBufferGetFormatDescription(run.sample),
                     (__bridge CFDictionaryRef)decodeSpec, (__bridge CFDictionaryRef)decodeAttrs, &callback, &decoder);
                 statuses[@"decoder_create"] = @(status);
                 if (status || !decoder) { fail(@"decoder_create_failed"); break; }
-                decoderQuery = CopyBool(decoder, kVTDecompressionPropertyKey_UsingHardwareAcceleratedVideoDecoder, decoderHardware);
-                if (!decoderQuery || decoderHardware) { fail(@"software_decoder_not_confirmed"); break; }
+                decoderHardwareDisabledBySpec =
+                    decodeSpec[(__bridge NSString *)kVTVideoDecoderSpecification_EnableHardwareAcceleratedVideoDecoder] ==
+                    (__bridge id)kCFBooleanFalse;
+                decoderQuery = CopyBool(decoder, kVTDecompressionPropertyKey_UsingHardwareAcceleratedVideoDecoder,
+                                        decoderHardware, &decoderQueryStatus);
+                // Apple guarantees that the explicit false specification prevents
+                // hardware decode. Its software decoder may not expose the hardware
+                // query key; preserve that unsupported result instead of inventing false.
+                const bool softwareConfirmed = decoderHardwareDisabledBySpec &&
+                    ((decoderQuery && !decoderHardware && decoderQueryStatus == noErr) ||
+                     (!decoderQuery && decoderQueryStatus == kVTPropertyNotSupportedErr));
+                if (!softwareConfirmed) { fail(@"software_decoder_not_confirmed"); break; }
             }
             status = VTDecompressionSessionDecodeFrame(decoder, run.sample, kVTDecodeFrame_EnableAsynchronousDecompression, nullptr, nullptr);
             if (status) { statuses[@"decode_submit"] = @(status); fail(@"decode_submit_failed"); break; }
@@ -423,7 +437,7 @@ int main(int argc, const char **argv) { @autoreleasepool {
     if (run.sample) CFRelease(run.sample);
     if (run.decoded) CFRelease(run.decoded);
     NSDictionary *report = @{
-        @"schema_version": @1, @"probe": @"3060-nvenc-h264-v1", @"profile": [NSString stringWithUTF8String:profile.c_str()],
+        @"schema_version": @2, @"probe": @"3060-nvenc-h264-v2", @"profile": [NSString stringWithUTF8String:profile.c_str()],
         @"pass": @(errors.count == 0), @"hardware_required": @YES, @"software_fallback_allowed": @NO,
         @"candidate_sha256": [NSString stringWithUTF8String:candidateSHA.c_str()],
         @"upstream_tag": [NSString stringWithUTF8String:upstreamTag.c_str()], @"loaded_encoder_sha256": loadedSHA,
@@ -432,8 +446,11 @@ int main(int argc, const char **argv) { @autoreleasepool {
             @"width": @(Width), @"height": @(Height), @"fps": @(FPS), @"requested_frames": @(frames) },
         @"results": @{ @"encoded_frames": @(encoded), @"decoded_frames": @(decoded), @"verified_frames": @(verified),
             @"callback_errors": @(callbackErrors), @"dropped_frames": @(dropped), @"forced_keyframes": @(forced),
-            @"forced_idr_passed": @(forcedPassed), @"idr_frames": @(idrs), @"decoder_hardware_used": @(decoderHardware),
-            @"decoder_hardware_query_success": @(decoderQuery), @"luma_mae_max": @(maximum.y), @"chroma_mae_max": @(maximum.uv),
+            @"forced_idr_passed": @(forcedPassed), @"idr_frames": @(idrs),
+            @"decoder_hardware_used": decoderQuery ? @(decoderHardware) : [NSNull null],
+            @"decoder_hardware_query_success": @(decoderQuery), @"decoder_hardware_query_status": @(decoderQueryStatus),
+            @"decoder_hardware_disabled_by_spec": @(decoderHardwareDisabledBySpec),
+            @"luma_mae_max": @(maximum.y), @"chroma_mae_max": @(maximum.uv),
             @"region_mae_max": @(maximum.region), @"thin_line_mae_max": @(maximum.thin), @"marker_error_max": @(maximum.marker),
             @"elapsed_seconds": @(elapsed), @"encoded_fps": @(elapsed > 0 ? encoded / elapsed : 0),
             @"encode_ms_p50": @(Quantile(latencies, .5)), @"encode_ms_p95": @(Quantile(latencies, .95)),

@@ -13,7 +13,7 @@ SPEC.loader.exec_module(MODULE)
 def fixture(profile="smoke"):
     frames = 3600 if profile == "qualification" else 30
     return {
-        "schema_version": 1, "probe": "3060-nvenc-h264-v1", "profile": profile, "pass": True,
+        "schema_version": 2, "probe": "3060-nvenc-h264-v2", "profile": profile, "pass": True,
         "hardware_required": True, "software_fallback_allowed": False, "hardware_used": True,
         "encoder_requested": MODULE.ENCODER_ID, "encoder_selected": MODULE.ENCODER_ID,
         "candidate_sha256": "a" * 64, "loaded_encoder_sha256": "b" * 64, "upstream_tag": "v2.3.6",
@@ -25,12 +25,20 @@ def fixture(profile="smoke"):
             "callback_errors": 0, "dropped_frames": 0, "forced_keyframes": (frames + 59) // 60,
             "forced_idr_passed": (frames + 59) // 60, "idr_frames": (frames + 59) // 60,
             "decoder_hardware_used": False, "decoder_hardware_query_success": True,
+            "decoder_hardware_query_status": 0, "decoder_hardware_disabled_by_spec": True,
             "luma_mae_max": 1.1, "chroma_mae_max": 1.5, "region_mae_max": 3,
             "thin_line_mae_max": 6, "marker_error_max": 4, "elapsed_seconds": frames / 60,
             "encoded_fps": 60, "encode_ms_p50": 3, "encode_ms_p95": 5, "encode_ms_max": 8,
         },
         "statuses": dict.fromkeys(MODULE.STATUS_KEYS, 0), "errors": [],
     }
+
+
+def unsupported_decoder_fixture(profile="smoke"):
+    report = fixture(profile)
+    report["results"].update(decoder_hardware_used=None, decoder_hardware_query_success=False,
+                             decoder_hardware_query_status=-12900)
+    return report
 
 
 class HardwareReportTest(unittest.TestCase):
@@ -40,6 +48,63 @@ class HardwareReportTest(unittest.TestCase):
     def test_valid_qualification_with_external_binding(self):
         self.assertEqual([], MODULE.validate_report(fixture("qualification"), profile="qualification",
             candidate_sha256="a" * 64, encoder_sha256="b" * 64, upstream_tag="v2.3.6"))
+
+    def test_unsupported_query_with_explicit_software_spec_is_valid(self):
+        self.assertEqual([], MODULE.validate_report(unsupported_decoder_fixture(), profile="smoke"))
+        self.assertEqual([], MODULE.validate_report(unsupported_decoder_fixture("qualification"),
+            profile="qualification", candidate_sha256="a" * 64, encoder_sha256="b" * 64, upstream_tag="v2.3.6"))
+
+    def test_decoder_evidence_must_be_consistent_and_exactly_typed(self):
+        cases = [
+            # Even a supported false observation must preserve the explicit no-HW specification.
+            (0, True, False, False, 0), (0, True, False, 1, 0),
+            # Query true, unknown, numeric false, or status-0 type failure cannot pass.
+            (0, True, True, True, 0), (0, True, None, True, 0),
+            (0, True, 0, True, 0), (0, False, None, True, 0),
+            (False, True, False, True, 0), (0.0, True, False, True, 0),
+            (0, 1, False, True, 0),
+            # Unsupported must stay unknown, with a failed query and successful creation.
+            (-12900, True, None, True, 0), (-12900, False, False, True, 0),
+            (-12900, False, True, True, 0), (-12900, False, None, False, 0),
+            (-12900, False, None, True, -12908), (-12900, False, None, True, False),
+            (-12900.0, False, None, True, 0), (-12900, 0, None, True, 0),
+            (-12903, False, None, True, 0), (None, False, None, True, 0),
+        ]
+        for status, success, used, disabled, created in cases:
+            with self.subTest(status=status, success=success, used=used, disabled=disabled, created=created):
+                report = fixture()
+                report["results"].update(decoder_hardware_query_status=status,
+                    decoder_hardware_query_success=success, decoder_hardware_used=used,
+                    decoder_hardware_disabled_by_spec=disabled)
+                report["statuses"]["decoder_create"] = created
+                self.assertTrue(MODULE.validate_report(report, profile="smoke"))
+
+    def test_unsupported_decoder_does_not_bypass_encoder_content_or_provenance(self):
+        mutations = [("hardware_used", False), ("encoder_selected", "software"),
+                     ("results.luma_mae_max", 13), ("results.verified_frames", 29),
+                     ("results.forced_idr_passed", 0), ("loaded_encoder_sha256", "c" * 64)]
+        for field, value in mutations:
+            with self.subTest(field=field):
+                report = unsupported_decoder_fixture()
+                keys = field.split(".")
+                target = report if len(keys) == 1 else report[keys[0]]
+                target[keys[-1]] = value
+                self.assertTrue(MODULE.validate_report(report, profile="smoke", encoder_sha256="b" * 64))
+        report = unsupported_decoder_fixture("qualification")
+        report["results"]["encode_ms_p95"] = 17
+        report["results"]["encode_ms_max"] = 18
+        self.assertTrue(MODULE.validate_report(report, profile="qualification",
+            candidate_sha256="a" * 64, encoder_sha256="b" * 64, upstream_tag="v2.3.6"))
+
+    def test_old_schema_cannot_claim_new_decoder_evidence(self):
+        for old_shape in (False, True):
+            with self.subTest(old_shape=old_shape):
+                report = fixture()
+                report.update(schema_version=1, probe="3060-nvenc-h264-v1")
+                if old_shape:
+                    del report["results"]["decoder_hardware_disabled_by_spec"]
+                    del report["results"]["decoder_hardware_query_status"]
+                self.assertTrue(MODULE.validate_report(report, profile="smoke"))
 
     def test_qualification_needs_external_binding(self):
         self.assertTrue(MODULE.validate_report(fixture("qualification"), profile="qualification"))

@@ -23,7 +23,8 @@ VIDEO_KEYS = {"codec", "input_format", "input_layout", "width", "height", "fps",
 RESULT_KEYS = {
     "encoded_frames", "decoded_frames", "verified_frames", "callback_errors", "dropped_frames",
     "forced_keyframes", "forced_idr_passed", "idr_frames", "decoder_hardware_used",
-    "decoder_hardware_query_success", "luma_mae_max", "chroma_mae_max", "region_mae_max",
+    "decoder_hardware_query_success", "decoder_hardware_query_status", "decoder_hardware_disabled_by_spec",
+    "luma_mae_max", "chroma_mae_max", "region_mae_max",
     "thin_line_mae_max", "marker_error_max", "elapsed_seconds", "encoded_fps", "encode_ms_p50",
     "encode_ms_p95", "encode_ms_max",
 }
@@ -54,8 +55,8 @@ def validate_report(
     if not isinstance(report, dict) or set(report) != ROOT_KEYS:
         return ["report keys differ from the public allowlist"]
     require(profile in {"smoke", "qualification"}, "unknown validation profile")
-    require(type(report["schema_version"]) is int and report["schema_version"] == 1, "unsupported schema")
-    require(report["probe"] == "3060-nvenc-h264-v1", "wrong probe")
+    require(type(report["schema_version"]) is int and report["schema_version"] == 2, "unsupported schema")
+    require(report["probe"] == "3060-nvenc-h264-v2", "wrong probe")
     require(report["profile"] == profile, "profile mismatch")
     require(report["pass"] is True, "probe did not pass")
     require(report["hardware_required"] is True, "hardware was not required")
@@ -86,7 +87,10 @@ def validate_report(
                       "forced_keyframes", "forced_idr_passed", "idr_frames"}
     for name in integer_fields:
         require(_integer(results[name]) and results[name] >= 0, "invalid integer result")
-    numeric_fields = RESULT_KEYS - integer_fields - {"decoder_hardware_used", "decoder_hardware_query_success"}
+    numeric_fields = RESULT_KEYS - integer_fields - {
+        "decoder_hardware_used", "decoder_hardware_query_success", "decoder_hardware_query_status",
+        "decoder_hardware_disabled_by_spec",
+    }
     for name in numeric_fields:
         require(_number(results[name]), "invalid numeric result")
     if any(item.startswith("invalid ") for item in problems):
@@ -98,7 +102,22 @@ def validate_report(
     require(results["forced_keyframes"] == forced and results["forced_idr_passed"] == forced,
             "forced IDR verification incomplete")
     require(forced <= results["idr_frames"] <= frames, "invalid IDR count")
-    require(results["decoder_hardware_used"] is False and results["decoder_hardware_query_success"] is True,
+    # The explicit false decoder specification prevents hardware decode. Apple's
+    # software decoder can reject the hardware-query key with -12900; do not turn
+    # an unavailable query into a fabricated hardware_used=false observation.
+    query_status = results["decoder_hardware_query_status"]
+    query_supported = (_integer(query_status) and query_status == 0 and
+                       results["decoder_hardware_query_success"] is True and
+                       results["decoder_hardware_used"] is False)
+    query_unsupported = (_integer(query_status) and query_status == -12900 and
+                         results["decoder_hardware_query_success"] is False and
+                         results["decoder_hardware_used"] is None)
+    decoder_statuses = report["statuses"]
+    decoder_created = (isinstance(decoder_statuses, dict) and
+                       _integer(decoder_statuses.get("decoder_create")) and
+                       decoder_statuses["decoder_create"] == 0)
+    require(results["decoder_hardware_disabled_by_spec"] is True and decoder_created and
+            (query_supported or query_unsupported),
             "independent software decode was not confirmed")
     for field, limit in (("luma_mae_max", 12), ("chroma_mae_max", 15), ("region_mae_max", 24),
                          ("thin_line_mae_max", 45), ("marker_error_max", 32)):

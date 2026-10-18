@@ -59,13 +59,30 @@ python3 scripts/validate_hardware_report.py qualification.json \
 
 这不是防篡改硬件证明。应同时保存构建 run、候选包及其哈希、上游 commit、补丁和测试命令。报告不能替代候选驱动安装来源检查。公开报告只包含固定字段、数值、版本、哈希和固定错误代码，不包含序列号、Apple ID、密码、主机名、文件路径或屏幕内容。验证器拒绝额外字段、重复 JSON 键和非有限数值。
 
+## 软件解码证据与报告版本
+
+实机报告使用 `schema_version: 2`、`probe: 3060-nvenc-h264-v2`。验证器不接受旧版报告冒充新版验收；保留旧版原始失败报告，使用新版探针重新测试，不手工改写旧报告。
+
+创建独立解码会话时，探针明确传入 `EnableHardwareAcceleratedVideoDecoder = kCFBooleanFalse`。Apple 文档说明此值[禁止硬件解码](https://developer.apple.com/documentation/VideoToolbox/kVTVideoDecoderSpecification_EnableHardwareAcceleratedVideoDecoder)。只有创建成功后，报告才记录 `decoder_hardware_disabled_by_spec: true`。
+
+Apple 软件解码器可能不实现 `UsingHardwareAcceleratedVideoDecoder` 查询；本机 macOS 15.8.1 在解码前后都返回 `kVTPropertyNotSupportedErr`（`-12900`）。该属性[用于查询启用硬件解码后的选择结果](https://developer.apple.com/documentation/videotoolbox/kvtdecompressionpropertykey_usinghardwareacceleratedvideodecoder)，不能把不支持查询伪造为观测到了 `false`。
+
+验证器仅接受以下两种软件解码证据，且两者均要求上述显式禁用参数、成功创建解码会话，以及所有帧实际解码和像素验收通过：
+
+| 查询结果 | `decoder_hardware_query_status` | `decoder_hardware_query_success` | `decoder_hardware_used` |
+| --- | --- | --- | --- |
+| 查询成功且返回 CFBoolean false | `0` | `true` | `false` |
+| 属性不受支持 | `-12900` | `false` | `null`（未知） |
+
+查询为真、其他错误、成功状态却返回空值或非 CFBoolean 类型，以及报告字段互相矛盾，均不通过。软件解码用于独立检查 NVENC 输出；编码端仍必须使用精确指定的 NVIDIA 硬件编码器，软件编码回退仍不允许。
+
 ## 必须同时满足的条件
 
 - I/O Registry 中恰有一个 NVIDIA 显示设备，且为目标 `10de:2504`，避免由另一张 NVIDIA 卡完成编码而误判。
 - 创建编码器时要求硬件，并固定 `com.nvmtl.videoencoder.avc.nvenc`；会话返回的实际 encoder ID 必须一致，硬件标志必须为真。
 - 输入为普通 `420v` NV12、1920×1080；**不做光梭旧版的 CPU 预排列补偿**。新驱动适配应使普通布局直接正确。
 - H.264 为实时模式、禁止帧重排，最多一个在途帧；每 60 帧主动请求一个 IDR，并解析 H.264 NAL 单元确认对应帧确实是 IDR。
-- 使用禁止硬件加速的独立 VideoToolbox 软件解码会话；解码会话的硬件标志必须查询成功且为假，避免用同一个有问题的 GPU 解码器掩盖错误。
+- 使用明确禁止硬件加速的独立 VideoToolbox 软件解码会话，并按上述两种证据之一确认软件路径，避免用同一个有问题的 GPU 解码器掩盖错误。
 - 每帧必须成功编码、软件解码、时间戳匹配，并对所有可见 Y/UV 字节与原始图案比较。图案包含区域网格、单像素细线、不同色度区域和移动标记；统计每帧误差最大值、16 个区域的最大误差、细线误差及移动标记误差。
 - 像素容差：Y 平均绝对误差 ≤12；UV ≤15；任一区域 Y ≤24；细线 ≤45；标记任一采样分量误差 ≤32。H.264 有损，因此不要求字节完全一致；这些容差不能检测所有可能的视觉缺陷，人工观察和真实桌面测试仍有价值。
 - qualification 至少 3600 帧；请求、编码、解码、像素验收数量完全一致；回调错误和丢帧均为 0；强制 IDR 全部通过。
