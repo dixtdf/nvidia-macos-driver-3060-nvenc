@@ -92,12 +92,32 @@ def hardware_check(tag: str) -> None:
     if sys.platform != "darwin" or platform.machine() != "x86_64":
         raise ValueError("Application requires Intel macOS")
     inventory = subprocess.run(["/usr/sbin/ioreg", "-a", "-r", "-c", "IOPCIDevice"], check=True, capture_output=True).stdout
-    devices = []
-    for item in plistlib.loads(inventory):
+    # ioreg can return overlapping roots and nested PCI devices (for example,
+    # a GPU below a PCI bridge). Traverse every subtree, but count each registry
+    # entry once rather than treating repeated snapshots as additional GPUs.
+    pending = plistlib.loads(inventory)
+    if not isinstance(pending, list):
+        raise ValueError("Unexpected PCI inventory structure")
+    entries = {}
+    while pending:
+        item = pending.pop()
+        if not isinstance(item, dict):
+            raise ValueError("Unexpected PCI inventory entry")
+        children = item.get("IORegistryEntryChildren", [])
+        if not isinstance(children, list):
+            raise ValueError("Unexpected PCI inventory children")
+        pending.extend(children)
         vendor, device, code = (item.get(key) for key in ("vendor-id", "device-id", "class-code"))
         if all(isinstance(value, bytes) for value in (vendor, device, code)):
-            if int.from_bytes(vendor, "little") == 0x10DE and int.from_bytes(code, "little") >> 16 == 3:
-                devices.append(int.from_bytes(device, "little"))
+            identity = tuple(int.from_bytes(value, "little") for value in (vendor, device, code))
+            entry_id = item.get("IORegistryEntryID")
+            if type(entry_id) is not int or entry_id < 0:
+                raise ValueError("PCI inventory entry lacks a valid registry ID")
+            if entry_id in entries and entries[entry_id] != identity:
+                raise ValueError("Conflicting PCI inventory entries share a registry ID")
+            entries[entry_id] = identity
+    devices = [device for vendor, device, code in entries.values()
+               if vendor == 0x10DE and code >> 16 == 3]
     if devices != [0x2504]:
         raise ValueError("Requires exactly one NVIDIA display GPU, PCI 10de:2504")
     loaded = subprocess.run(["/usr/bin/kmutil", "showloaded", "--list-only"], check=True, capture_output=True, text=True).stdout

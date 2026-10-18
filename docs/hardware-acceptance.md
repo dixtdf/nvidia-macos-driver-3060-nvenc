@@ -4,6 +4,16 @@
 
 GitHub 托管的 macOS runner 没有这张显卡。Actions 能构建和执行拒绝软件回退的负向测试，**不能据此标记真实 3060 已验证**。真实验收应在单独安排的 3060 测试机运行，且仅在已有备份和回滚条件下安装候选驱动。
 
+## 官方基线安装检查
+
+从旧驱动升级时，先保存关机状态的系统盘、实际 EFI 引导盘、UEFI NVRAM 和 VM 配置；用户态 bundle 的备份不足以恢复旧版内核扩展和辅助内核集合。官方包的 `CHECK=1` 是环境变量：`sudo env CHECK=1 bash /path/to/pkgroot/install.sh`。检查通过后才执行官方安装器。
+
+v2.3.6 安装器明确提示：若已加载 WhateverGreen，OpenCore 的 `boot-args` 需要 `gfxrst=4`，避免其启动画面复制路径触发显示打开时的崩溃。先备份并修改实际使用的 EFI 配置，用对应版本 `ocvalidate` 检查，并在重启后确认实际 `boot-args`。不要只修改仓库模板。
+
+官方安装后先重启，确认四个 NullMoth 内核扩展均为目标版本，显示和恢复通道正常，再执行覆盖工具的 `--check`、应用覆盖包并再次重启。不要在磁盘上的新驱动与内存里的旧驱动混用时测试编码。覆盖工具会遍历完整 PCI 子树并按 registry ID 去重；位于 PCI 桥后的显卡也必须满足单卡 `10de:2504` 限制。
+
+官方安装器打印的 `uninstall.sh` 不能替代完整旧版本恢复；覆盖工具的 `--restore` 也只恢复同版本官方用户态 bundle。回到旧 1.9.0 应使用此前保存的完整 VM/驱动备份。
+
 ## Actions 预编译探针
 
 从成功运行的 Actions Artifacts 下载 `nvenc3060-probe-v<version>.tar.gz`，核对同次运行的 `SHA256SUMS.txt` 后解压。包内已经包含 `nvenc-acceptance` 和 `validate_hardware_report.py`，不需要目标机安装 Xcode。进入该解压目录执行：
