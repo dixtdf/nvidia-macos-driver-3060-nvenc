@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "profile_id": "nullmoth-v2.3.6-rtx3060-h264-t2d-experimental",
+  "upstream_tag": "v2.3.6",
+  "upstream_release": "https://github.com/nullmoth/nvidia-macos-driver/releases/tag/v2.3.6",
+  "status": "experimental",
+  "hardware_qualified": false,
+  "hardware": {
+    "vendor_id": "10de",
+    "device_id": "2504",
+    "gpu": "RTX 3060 12GB"
+  },
+  "registration_scope": "The Metal binary H.264 gate is overridden globally; an external guard restricting application to one PCI display adapter 10de:2504 is mandatory. HEVC gate is unchanged.",
+  "files": [
+    {
+      "path": "NVMTLDriver",
+      "size": 1506544,
+      "macho_filetype": 8,
+      "sha256_before": "8ab9ddc4a4da44f3f1c98703c0b88685c60bd0f229295e439fe04b52acc20ef4",
+      "patches": [
+        {
+          "name": "h264-registration-gate",
+          "offset": 641145,
+          "before_hex": "8b05e1e50700",
+          "after_hex": "e9b100000090",
+          "payload_size": 6
+        }
+      ],
+      "sha256_after": "8617cac696783ade7e2c745e0f3e770a1d3e05430bb95b01cc633ba89a028658"
+    },
+    {
+      "path": "libnvenc_h264.dylib",
+      "size": 62736,
+      "macho_filetype": 6,
+      "sha256_before": "c78e21aae60f746cd915f8c9fa6e27728b9704304ab837b1bf30e5beffef5813",
+      "patches": [
+        {
+          "name": "classic-t2d-luma",
+          "offset": 25514,
+          "before_hex": "4489e0c1e8044489e183e108c1e1064489e283e2078d0cd131d231f6662e0f1f840000000000418b7f10c1ef060faff84189f041c1e8064101f841c1e00a89d781e7c001000009cf4409c74d8b04364c89043b4883c60883c2404c39ce7cc7e922ffffff",
+          "after_hex": "4489e083e0f0410faf47104489e183e108c1e1064489e783e704c1e70509f94489e783e703c1e70409f909c131f631d289cf01d7410f1004360f11043b4883c61081ca8002000083c24081e27ffdffff4c39ce7cdbe92cffffff90909090909090909090",
+          "payload_size": 90
+        },
+        {
+          "name": "classic-t2d-chroma",
+          "offset": 25817,
+          "before_hex": "4489e0c1e8044489e283e208c1e2064489e1c1e10483e17009d131d231f6660f1f840000000000418b7910c1ef060faff84189f041c1e8064101f841c1e00a89d781e78001000009cf4409c7410f100436410f11043a4883c61083ea804839de7cc5e910ffffff",
+          "after_hex": "4489e083e0f0410faf41104489e183e108c1e1064489e783e704c1e70509f94489e783e703c1e70409f909c131f631d289cf01d7410f100436410f11043a4883c61081ca8002000083c24081e27ffdffff4839de7cdae91cffffff909090909090909090909090",
+          "payload_size": 91
+        }
+      ],
+      "sha256_after": "d70b077caf399fe0a6283b5c1df7097caa04fbeddb9fa1545d43ad04be0f2857"
+    }
+  ]
+}

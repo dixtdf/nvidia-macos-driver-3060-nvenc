@@ -1,0 +1,15 @@
+This repository is an independent compatibility experiment by dixtdf.
+It is not an official NullMoth or NVIDIA driver release.
+
+Original adaptation tools and probes in this repository: MIT, see LICENSE.
+
+The upstream NVIDIA macOS driver is developed by NullMoth Systems:
+https://github.com/nullmoth/nvidia-macos-driver
+Its code and derived driver binaries retain their upstream terms, including
+the PolyForm Noncommercial License 1.0.0. See LICENSES/UPSTREAM-LICENSE.txt
+and LICENSES/UPSTREAM-NOTICE.txt. This repository's MIT license does not
+relicense those components.
+
+Candidate artifacts contain only the explicitly identified compatibility
+overlay and accompanying notices. They do not contain pairing credentials,
+signing identities, a full NVIDIA firmware distribution, or a kernel driver.

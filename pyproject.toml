@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nvenc3060-adapter"
+version = "0.1.0"
+description = "Experimental, version-guarded RTX 3060 H.264 compatibility overlays for the NullMoth macOS driver"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

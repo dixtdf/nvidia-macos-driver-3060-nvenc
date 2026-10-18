@@ -1,0 +1,120 @@
+name: Track official upstream releases
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-release-poll
+  cancel-in-progress: false
+
+jobs:
+  candidate-pr:
+    if: github.repository == 'dixtdf/nvidia-macos-driver-3060-nvenc'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.13'
+      - name: Check release provenance
+        id: upstream
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/check_upstream.py --output state/upstream.json --github-output "$GITHUB_OUTPUT"
+      - name: Update one candidate branch and pull request
+        if: steps.upstream.outputs.changed == 'true'
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ steps.upstream.outputs.tag }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch=codex/upstream-candidate
+          needs_commit=true
+          remote_sha=$(git ls-remote origin "refs/heads/$branch" | cut -f1)
+          if [[ -n "$remote_sha" ]]; then
+            git fetch --no-tags origin "refs/heads/$branch"
+            merge_base=$(git merge-base HEAD FETCH_HEAD)
+            branch_files=$(git diff --name-only "$merge_base" FETCH_HEAD)
+            if [[ -n "$branch_files" && "$branch_files" != 'state/upstream.json' ]]; then
+              echo 'Candidate branch contains reviewer changes. Refusing to overwrite them.' >&2
+              exit 1
+            fi
+            if git show 'FETCH_HEAD:state/upstream.json' > "$RUNNER_TEMP/previous-candidate.json"; then
+              if cmp --silent state/upstream.json "$RUNNER_TEMP/previous-candidate.json"; then
+                needs_commit=false
+                previous_pr_state=$(gh pr list --state all --head "$branch" --base "$DEFAULT_BRANCH" --limit 1 --json state --jq '.[0].state // empty')
+                if [[ "$previous_pr_state" == 'CLOSED' || "$previous_pr_state" == 'MERGED' ]]; then
+                  echo 'This exact candidate was already reviewed or deliberately closed; no repeated PR.'
+                  echo 'updated=false' >> "$GITHUB_OUTPUT"
+                  exit 0
+                fi
+              fi
+            fi
+          fi
+          if [[ "$needs_commit" == 'true' ]]; then
+            git switch --create "$branch"
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add -- state/upstream.json
+            git commit -m "Track official upstream $RELEASE_TAG as unvalidated candidate"
+            gh auth setup-git
+            git push "--force-with-lease=refs/heads/$branch:$remote_sha" origin "HEAD:refs/heads/$branch"
+          fi
+          cat > "$RUNNER_TEMP/candidate-pr.md" <<'BODY'
+          This PR updates official release provenance only. It does not approve an adapter or install anything on a Mac.
+
+          The release tag resolves to an immutable commit in `state/upstream.json`; the complete official tarball is pinned by its GitHub-published SHA-256 digest. Release descriptions are never executed or used as instructions.
+
+          - Review the new upstream commit, archive contents and NVIDIA encoding library hashes.
+          - Add a narrowly matched adapter profile only after inspecting the changed source and binary layout.
+          - GitHub-hosted CI can compile an experimental overlay and reject non-NVIDIA hardware. It cannot validate an RTX 3060.
+          - Require on-device H.264 hardware encoding, decoded-image correctness and sustained-load acceptance before deploying or publishing anything as working.
+
+          Unknown profiles stop the build. No driver is automatically installed and no public release is automatically published.
+          BODY
+          pr_number=$(gh pr list --state open --head "$branch" --base "$DEFAULT_BRANCH" --json number --jq '.[0].number // empty')
+          if [[ -n "$pr_number" ]]; then
+            gh pr edit "$pr_number" --title "Review upstream $RELEASE_TAG candidate" --body-file "$RUNNER_TEMP/candidate-pr.md"
+          else
+            gh pr create --head "$branch" --base "$DEFAULT_BRANCH" --title "Review upstream $RELEASE_TAG candidate" --body-file "$RUNNER_TEMP/candidate-pr.md"
+          fi
+          # Recover a prior PR-permission/dispatch failure without producing
+          # another commit or rerunning an already-started candidate build.
+          if [[ "$needs_commit" == 'false' ]]; then
+            prior_run=$(gh run list --workflow build.yml --branch "$branch" --commit "$remote_sha" --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+            if [[ -n "$prior_run" ]]; then
+              echo 'Candidate PR and explicitly dispatched build already exist.'
+              echo 'updated=false' >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo 'updated=true' >> "$GITHUB_OUTPUT"
+      - name: Explicitly dispatch candidate build
+        if: steps.pr.outputs.updated == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run build.yml --ref codex/upstream-candidate
+      - name: Explain workflow permissions if disabled
+        if: failure()
+        run: |
+          echo 'If GitHub denied PR creation, enable Settings > Actions > General > Allow GitHub Actions to create and approve pull requests.'
+          echo 'This workflow creates review PRs only; it never approves or merges them.'

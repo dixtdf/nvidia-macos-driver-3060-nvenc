@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "upstream_repository": "nullmoth/nvidia-macos-driver",
+  "release": {
+    "id": 416265748,
+    "tag": "v2.3.6",
+    "commit": "637282334617d27bccf8aa2448497c0f19465dc8",
+    "published_at": "2026-10-18T06:01:17Z",
+    "url": "https://github.com/nullmoth/nvidia-macos-driver/releases/tag/v2.3.6"
+  },
+  "asset": {
+    "id": 652634653,
+    "name": "nullmoth-nvidia-2.3.6.tar.gz",
+    "url": "https://github.com/nullmoth/nvidia-macos-driver/releases/download/v2.3.6/nullmoth-nvidia-2.3.6.tar.gz",
+    "size": 269018436,
+    "sha256": "3855954d9069eca470e4dbc7f645a63bba888040ec099285ef044ece03ad8e4f"
+  },
+  "hardware_validation": "not-run"
+}

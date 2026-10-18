@@ -1,0 +1,15 @@
+/build/
+/dist/
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+*.log
+*.dylib
+*.tar.gz
+*.frames
+*.pem
+*.key
+*.p12
+*.pfx
+*.der

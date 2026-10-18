@@ -1,0 +1,85 @@
+name: Validate and build experimental RTX 3060 overlay
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: candidate-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.13'
+      - name: Unit tests, provenance and fail-closed adapter checks
+        run: python -m unittest discover -s tests
+
+  experimental-macos-build:
+    needs: static-tests
+    runs-on: macos-15-intel
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.13'
+      - name: Download, verify, adapt and ad-hoc sign pinned candidate
+        run: python scripts/build_candidate.py --state state/upstream.json --output build/candidate --cache build/cache
+      - name: Build on-device acceptance probe
+        run: bash probes/build.sh build/probes
+      - name: Negative control rejects the hosted runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          build/probes/nvenc-acceptance --profile smoke --frames 30 --fps 60 --report build/no-nvidia.json
+          result=$?
+          set -e
+          if [[ "$result" -ne 1 ]]; then
+            echo 'Probe must explicitly reject the hosted runner with exit 1; success, crash or usage errors are unacceptable.' >&2
+            exit 1
+          fi
+          test -s build/no-nvidia.json
+          set +e
+          python scripts/validate_hardware_report.py build/no-nvidia.json --profile smoke
+          validation_result=$?
+          set -e
+          if [[ "$validation_result" -ne 1 ]]; then
+            echo 'Validator must explicitly reject a readable negative-control report; success and parser errors are unacceptable.' >&2
+            exit 1
+          fi
+      - name: Upload experimental overlay only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rtx3060-nvenc-experimental-${{ github.sha }}
+          path: |
+            build/candidate/*.tar.gz
+            build/candidate/build-report.json
+            build/candidate/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload negative-control report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: hosted-runner-negative-control-${{ github.sha }}
+          path: build/no-nvidia.json
+          if-no-files-found: ignore
+          retention-days: 14
