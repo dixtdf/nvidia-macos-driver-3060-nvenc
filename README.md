@@ -10,9 +10,9 @@
 | 适配对象 | Intel macOS，RTX 3060 GA106 LHR，PCI `10de:2504` |
 | 编码范围 | H.264 NVENC；不启用 HEVC |
 | 构建与更新 | GitHub Actions，不依赖 AI 服务或模型密钥 |
-| 新版适配后的实机验证 | **未执行**；构建通过不等于硬编、画面或延迟验收通过 |
+| 新版适配后的实机验证 | **指定候选已通过**单机 H.264 1080p60 合成验收；[报告与适用范围](docs/trial-2026-10-18-v2.3.6.md) |
 
-参考机器为 Unraid 虚拟机、macOS 15.8.1、RTX 3060 12GB。既有 1.9.0 + [GlideBeam](https://github.com/dixtdf/GlideBeam) 的成功测试不代表本项目新版覆盖包已通过测试。初始适配不承诺其他 3060 型号、其他 NVIDIA 显卡或 macOS 版本。
+参考机器为 Unraid 虚拟机、macOS 15.8.1、RTX 3060 12GB。2026-10-18 的指定候选完成 3600 帧编码、独立软件解码和像素校验，约 **60.00 FPS**，NVENC 编码延迟 **p95 2.82 ms**；现有 [GlideBeam](https://github.com/dixtdf/GlideBeam) 的生产编码路径短测也通过。结果绑定报告内的候选及编码库 SHA-256，不自动适用于其他构建、显卡或 macOS 版本，也不代表远控端到端或浏览器场景保证 60 FPS。
 
 ## 为什么需要这个项目
 

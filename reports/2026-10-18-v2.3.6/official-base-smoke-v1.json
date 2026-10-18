@@ -1,0 +1,58 @@
+{
+  "candidate_sha256" : "3c0d626404f5edc13f65034e17c4da77f1c0955a8fe957daeab87846abebdcfe",
+  "encoder_requested" : "com.nvmtl.videoencoder.avc.nvenc",
+  "encoder_selected" : "",
+  "errors" : [
+    "encoder_create_failed"
+  ],
+  "gpu" : {
+    "detected" : true,
+    "device_id" : 9476,
+    "matching_devices" : 1,
+    "nvidia_display_devices" : 1,
+    "vendor_id" : 4318
+  },
+  "hardware_required" : true,
+  "hardware_used" : false,
+  "loaded_encoder_sha256" : "",
+  "pass" : false,
+  "probe" : "3060-nvenc-h264-v1",
+  "profile" : "smoke",
+  "results" : {
+    "callback_errors" : 0,
+    "chroma_mae_max" : 0,
+    "decoded_frames" : 0,
+    "decoder_hardware_query_success" : false,
+    "decoder_hardware_used" : false,
+    "dropped_frames" : 0,
+    "elapsed_seconds" : 0,
+    "encode_ms_max" : 0,
+    "encode_ms_p50" : 0,
+    "encode_ms_p95" : 0,
+    "encoded_fps" : 0,
+    "encoded_frames" : 0,
+    "forced_idr_passed" : 0,
+    "forced_keyframes" : 0,
+    "idr_frames" : 0,
+    "luma_mae_max" : 0,
+    "marker_error_max" : 0,
+    "region_mae_max" : 0,
+    "thin_line_mae_max" : 0,
+    "verified_frames" : 0
+  },
+  "schema_version" : 1,
+  "software_fallback_allowed" : false,
+  "statuses" : {
+    "encoder_create" : -12908
+  },
+  "upstream_tag" : "v2.3.6",
+  "video" : {
+    "codec" : "h264",
+    "fps" : 60,
+    "height" : 1080,
+    "input_format" : "420v",
+    "input_layout" : "ordinary_nv12",
+    "requested_frames" : 30,
+    "width" : 1920
+  }
+}
