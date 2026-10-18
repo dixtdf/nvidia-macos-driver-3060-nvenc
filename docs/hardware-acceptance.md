@@ -4,7 +4,18 @@
 
 GitHub 托管的 macOS runner 没有这张显卡。Actions 能构建和执行拒绝软件回退的负向测试，**不能据此标记真实 3060 已验证**。真实验收应在单独安排的 3060 测试机运行，且仅在已有备份和回滚条件下安装候选驱动。
 
-## 编译与短测
+## Actions 预编译探针
+
+从成功运行的 Actions Artifacts 下载 `nvenc3060-probe-v<version>.tar.gz`，核对同次运行的 `SHA256SUMS.txt` 后解压。包内已经包含 `nvenc-acceptance` 和 `validate_hardware_report.py`，不需要目标机安装 Xcode。进入该解压目录执行：
+
+```sh
+./nvenc-acceptance --profile smoke --frames 30 --fps 60 --report smoke.json
+python3 validate_hardware_report.py smoke.json --profile smoke
+```
+
+下文的 `build/probes/nvenc-acceptance`、`scripts/validate_hardware_report.py` 为从源码构建时的路径；使用预编译包时换成上述两个路径。
+
+## 从源码编译与短测
 
 ```sh
 bash probes/build.sh build/probes

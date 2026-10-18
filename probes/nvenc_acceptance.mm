@@ -119,7 +119,7 @@ static NSString *LoadedEncoderSHA256() {
     return found ?: @"";
 }
 
-static bool Marker(int x, int y, int frame) {
+static bool IsProbeMarker(int x, int y, int frame) {
     const int left = 32 + ((frame * 14) % (Width - 192));
     const int top = 32 + ((frame * 6) % (Height - 160));
     return x >= left && x < left + 128 && y >= top && y < top + 96;
@@ -188,7 +188,7 @@ static bool Verify(CVPixelBufferRef pixel, CVPixelBufferRef reference, int frame
         const int difference = std::abs(static_cast<int>(y[row * ys + x]) - expectedY[row * expectedYS + x]);
         const int region = std::min(row * 4 / Height, 3) * 4 + x * 4 / Width;
         yError += difference; regionError[region] += difference; ++regionCount[region];
-        if ((x % 128 == 0 || row % 64 == 0) && !Marker(x, row, frame)) {
+        if ((x % 128 == 0 || row % 64 == 0) && !IsProbeMarker(x, row, frame)) {
             thinError += difference; ++thinCount;
         }
     }

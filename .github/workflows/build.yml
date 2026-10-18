@@ -65,6 +65,8 @@ jobs:
             echo 'Validator must explicitly reject a readable negative-control report; success and parser errors are unacceptable.' >&2
             exit 1
           fi
+      - name: Package compiled on-device probe
+        run: python scripts/package_probe.py --binary build/probes/nvenc-acceptance --output build/candidate
       - name: Upload experimental overlay only
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

@@ -35,8 +35,9 @@ GitHub 托管 runner 没有这张 3060。它能做静态检查、CPU 布局测�
 ## 构建产物
 
 - `nvenc3060-overlay-v<version>-experimental.tar.gz`：两个修改后的用户态二进制、外层签名资源、应用工具及许可。
+- `nvenc3060-probe-v<version>.tar.gz`：Actions 已编译并临时签名的 Intel Mac 实机探针、报告校验器和验收说明，无需在目标机重新编译。
 - `build-report.json`：上游出处、补丁审计、签名后摘要，状态始终保留 `hardware_validation: not-run`。
-- `SHA256SUMS.txt`：覆盖包摘要。
+- `SHA256SUMS.txt`：覆盖包与探针包摘要。
 
 覆盖包不包含内核驱动、固件、私人签名、序列号、Apple 账户或光梭配对资料。修改后的二进制使用 ad-hoc 签名。
 
