@@ -10,13 +10,13 @@
 | 适配对象 | Intel macOS，RTX 3060 GA106 LHR，PCI `10de:2504` |
 | 编码范围 | H.264 NVENC；不启用 HEVC |
 | 构建与更新 | GitHub Actions，不依赖 AI 服务或模型密钥 |
-| 新版适配后的实机验证 | v2.3.7 待实机验收；v2.3.6 的指定候选[已有单机合成验收报告](docs/trial-2026-10-18-v2.3.6.md)，不继承到新版 |
+| 新版适配后的实机验证 | v2.3.7 指定候选已通过；[升级记录、首轮未达标与复测报告](docs/upgrade-2026-10-19-v2.3.7.md) |
 
-参考机器为 Unraid 虚拟机、macOS 15.8.1、RTX 3060 12GB。2026-10-18 的指定候选完成 3600 帧编码、独立软件解码和像素校验，约 **60.00 FPS**，NVENC 编码延迟 **p95 2.82 ms**；现有 [GlideBeam](https://github.com/dixtdf/GlideBeam) 的生产编码路径短测也通过。结果绑定报告内的候选及编码库 SHA-256，不自动适用于其他构建、显卡或 macOS 版本，也不代表远控端到端或浏览器场景保证 60 FPS。
+参考机器为 Unraid 虚拟机、macOS 15.8.1、RTX 3060 12GB。2026-10-19 的 2.3.7 指定候选复测完成 3600 帧编码、独立软件解码和像素校验，约 **60.00 FPS**，NVENC 编码延迟 **p95 2.78 ms**；现有 [GlideBeam](https://github.com/dixtdf/GlideBeam) 的生产编码路径短测也通过。首轮刚启动时合成吞吐约 55.33 FPS，报告一并保留。结果绑定候选及编码库 SHA-256，不自动适用于其他构建、显卡或 macOS 版本，也不代表远控端到端或浏览器场景保证 60 FPS。此前 [2.3.6 验收记录](docs/trial-2026-10-18-v2.3.6.md)仍可查阅。
 
 ## 为什么需要这个项目
 
-上游 v2.3.6 对非 Blackwell 显卡跳过 H.264/HEVC 编码器注册。上游解释是编码库采用 Blackwell 输入布局，Ampere/Turing 需要经典布局；这不表示 3060 硬件没有 NVENC。[源码说明](https://github.com/nullmoth/nvidia-macos-driver/blob/v2.3.6/plugin/NVMTLDevice.m#L185-L189)、[布局实验](https://github.com/nullmoth/nvidia-macos-driver/issues/65)。
+上游 v2.3.6 / v2.3.7 对非 Blackwell 显卡跳过自带 H.264/HEVC 编码器注册。上游解释是编码库采用 Blackwell 输入布局，Ampere/Turing 需要经典布局；这不表示 3060 硬件没有 NVENC。[源码说明](https://github.com/nullmoth/nvidia-macos-driver/blob/v2.3.6/plugin/NVMTLDevice.m#L185-L189)、[布局实验](https://github.com/nullmoth/nvidia-macos-driver/issues/65)。
 
 本项目只研究 H.264 注册和 NV12 输入布局。Metal 渲染与 NVENC 编码分开验证，软件编码回退不算通过。未知二进制不会套用旧版本偏移。
 

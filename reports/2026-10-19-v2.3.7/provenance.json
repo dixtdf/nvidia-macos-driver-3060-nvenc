@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-19",
+  "scope": "One GA106 LHR RTX 3060; H.264 ordinary NV12 1920x1080 at 60 FPS synthetic acceptance. Requested bitrate: 20 Mbps; actual output bitrate was not measured.",
+  "environment": {
+    "os": "macOS 15.8.1",
+    "build": "24H32",
+    "architecture": "x86_64",
+    "gpu_pci": "10de:2504",
+    "vram_gb": 12,
+    "virtual_cpus": 20
+  },
+  "upstream": {
+    "tag": "v2.3.7",
+    "commit": "e2b0e547a18841b7d944850b03c9e605df76720b",
+    "package_sha256": "237675011b81d60f8473a4f53ad08407e659e4a9fcf0dc571c5c15de579e39e6"
+  },
+  "installed_candidate": {
+    "commit": "40e6e969994b8ac49bf58af7ab1941bbe2a4167b",
+    "actions_run": "https://github.com/dixtdf/nvidia-macos-driver-3060-nvenc/actions/runs/39197964029",
+    "archive_sha256": "e6171560048fc8ebcdc061360ec79aa4d8100bb4f6d994946aaa11d2e3c90f4e",
+    "main_binary_sha256": "a07560832e134c4f76b7d65251be1eefaefe737f06b0b3caee09ea84481d9783",
+    "encoder_library_sha256": "36a3d6a7ddb5d057afc0b66016f1dbfa597c4ee1aeb48c0bc9a1841de37b0830"
+  },
+  "acceptance_probe": {
+    "source_commit": "40e6e969994b8ac49bf58af7ab1941bbe2a4167b",
+    "build_method": "Exact precompiled and ad-hoc signed Intel macOS probe from the same Actions run.",
+    "archive_sha256": "01c194f31019695d59ebd3200325470e6abe748757f1c71bb8a3d8053eeaa850",
+    "binary_sha256": "5eb600a6d42ff56eb12c761039efb8172b18fbf7af96df9de210e181625ec52c"
+  },
+  "outcome": {
+    "smoke": "pass",
+    "qualification_initial": "fail: sustained_performance_below_target",
+    "qualification_retry01": "pass",
+    "glidebeam_production_codec_selftest": "pass",
+    "rollback_performed": false,
+    "driver_left_installed": "v2.3.7 plus the exact candidate above"
+  },
+  "limits": [
+    "HEVC not enabled or tested",
+    "Other GPUs and future candidates not qualified",
+    "macOS 26 upgrade not performed or qualified",
+    "No end-to-end network, capture, client display or browser FPS guarantee",
+    "Software decode is used only for independent output verification; encoding requires NVENC"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "pass": true,
+  "encoder_mode": "hardware",
+  "encoder_id": "com.nvmtl.videoencoder.avc.nvenc",
+  "hardware_used": true,
+  "hardware_query_status": 0,
+  "frames": 30,
+  "errors": 0,
+  "nvenc_layout_workaround": false,
+  "coded_height": 1080,
+  "width": 1920,
+  "height": 1080,
+  "fps": 60,
+  "encode_elapsed_ms": 116.127,
+  "forced_idr_verified": true,
+  "decoded_content": {
+    "pass": true,
+    "frames": 30,
+    "errors": 0,
+    "decoder": "Apple software H264",
+    "create_status": 0,
+    "hardware_query_status": -12900,
+    "luma_mean_error": 0,
+    "chroma_mean_error": 0.010666666666666666,
+    "dense_chroma_bad": 0,
+    "moving_marker_failures": 0
+  },
+  "source_report_sha256": "9516f9d003c8f0537da9c4218f8a53fda0c5f65c9d1978743be5c54ece69c395",
+  "scope": "Existing GlideBeam host production codec self-test; synthetic frames, not an end-to-end remote session."
+}

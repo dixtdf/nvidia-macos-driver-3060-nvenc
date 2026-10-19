@@ -1,0 +1,64 @@
+{
+  "candidate_sha256" : "e6171560048fc8ebcdc061360ec79aa4d8100bb4f6d994946aaa11d2e3c90f4e",
+  "encoder_requested" : "com.nvmtl.videoencoder.avc.nvenc",
+  "encoder_selected" : "com.nvmtl.videoencoder.avc.nvenc",
+  "errors" : [
+    "sustained_performance_below_target"
+  ],
+  "gpu" : {
+    "detected" : true,
+    "device_id" : 9476,
+    "matching_devices" : 1,
+    "nvidia_display_devices" : 1,
+    "vendor_id" : 4318
+  },
+  "hardware_required" : true,
+  "hardware_used" : true,
+  "loaded_encoder_sha256" : "36a3d6a7ddb5d057afc0b66016f1dbfa597c4ee1aeb48c0bc9a1841de37b0830",
+  "pass" : false,
+  "probe" : "3060-nvenc-h264-v2",
+  "profile" : "qualification",
+  "results" : {
+    "callback_errors" : 0,
+    "chroma_mae_max" : 0.040981867283950618,
+    "decoded_frames" : 3600,
+    "decoder_hardware_disabled_by_spec" : true,
+    "decoder_hardware_query_status" : -12900,
+    "decoder_hardware_query_success" : false,
+    "decoder_hardware_used" : null,
+    "dropped_frames" : 0,
+    "elapsed_seconds" : 65.066550312999993,
+    "encode_ms_max" : 19.036321999999998,
+    "encode_ms_p50" : 2.882088,
+    "encode_ms_p95" : 4.0696139999999996,
+    "encoded_fps" : 55.327967791166834,
+    "encoded_frames" : 3600,
+    "forced_idr_passed" : 60,
+    "forced_keyframes" : 60,
+    "idr_frames" : 60,
+    "luma_mae_max" : 0.068017457561728389,
+    "marker_error_max" : 2,
+    "region_mae_max" : 0.097638888888888886,
+    "thin_line_mae_max" : 0.67468260204292629,
+    "verified_frames" : 3600
+  },
+  "schema_version" : 2,
+  "software_fallback_allowed" : false,
+  "statuses" : {
+    "decoder_create" : 0,
+    "encoder_create" : 0,
+    "encoder_prepare" : 0,
+    "encoder_properties" : 0,
+    "input_buffer" : 0
+  },
+  "upstream_tag" : "v2.3.7",
+  "video" : {
+    "codec" : "h264",
+    "fps" : 60,
+    "height" : 1080,
+    "input_format" : "420v",
+    "input_layout" : "ordinary_nv12",
+    "requested_frames" : 3600,
+    "width" : 1920
+  }
+}
