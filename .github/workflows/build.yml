@@ -17,8 +17,12 @@ jobs:
   static-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      matrix:
+        profile: [v2.3.6.json, v2.3.7.json]
     env:
       PYTHONPATH: src
+      NVENC3060_TEST_PROFILE: ${{ matrix.profile }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -42,6 +46,8 @@ jobs:
           python-version: '3.13'
       - name: Download, verify, adapt and ad-hoc sign pinned candidate
         run: python scripts/build_candidate.py --state state/upstream.json --output build/candidate --cache build/cache
+      - name: Verify the actual pinned binaries and native layout instructions
+        run: python scripts/test_pinned_release.py --state state/upstream.json --cache build/cache
       - name: Build on-device acceptance probe
         run: bash probes/build.sh build/probes
       - name: Negative control rejects the hosted runner

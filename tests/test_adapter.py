@@ -19,7 +19,7 @@ from nvenc3060.adapter import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PROFILE = load_profile(ROOT / "profiles/v2.3.6.json")
+PROFILE = load_profile(ROOT / "profiles" / os.getenv("NVENC3060_TEST_PROFILE", "v2.3.6.json"))
 
 
 def fixture(name: str, filetype: int) -> tuple[bytes, dict]:
@@ -137,11 +137,13 @@ class AdapterGuards(unittest.TestCase):
         plugin = next(f for f in PROFILE["files"] if f["path"] == "NVMTLDriver")
         self.assertEqual(len(plugin["patches"]), 1)
         patch = plugin["patches"][0]
-        self.assertEqual(patch["offset"], 0x9C879)
+        reviewed = {"v2.3.6": (0x9C879, 0x9C92F), "v2.3.7": (0x9CF79, 0x9D02F)}
+        gate, continuation = reviewed[PROFILE["upstream_tag"]]
+        self.assertEqual(patch["offset"], gate)
         self.assertEqual(bytes.fromhex(patch["after_hex"]), b"\xe9\xb1\x00\x00\x00\x90")
         # The sole plug-in edit jumps to this H.264 function's registration path.
         self.assertEqual(patch["offset"] + 5 + struct.unpack("<i", bytes.fromhex(patch["after_hex"])[1:5])[0],
-                         0x9C92F)
+                         continuation)
 
 
 def native_wrapper(payload: bytes, chroma: bool) -> bytes:
