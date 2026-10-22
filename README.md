@@ -1,5 +1,7 @@
 # RTX 3060 NVENC · macOS
 
+> **2026-10-23 上游进展：**官方从 **2.4** 起已加入 RTX 20 / 30 的 H.264 / HEVC 硬编支持，最新正式版为 [2.5.3](https://github.com/nullmoth/nvidia-macos-driver/releases/tag/v2.5.3)，见[固定更新日志](https://github.com/nullmoth/nvidia-macos-driver/blob/75e2e28a55fef0e3c3001235c6d28c8cfae0019a/CHANGELOG.md)。后续优先实测完整官方包，通过后退出本仓库旧补丁路径；不能把旧偏移或二进制套到 2.5.x。本机本次只核对资料和清理升级残留，仍为已验收的 2.3.7 + 覆盖包，**尚未安装或验收 2.5.3**；下列 2.3.7 基线与报告继续保留。过程见[教程的更新与清理记录](https://github.com/dixtdf/unraid-macos-rtx3060/blob/main/docs/16-upstream-native-nvenc-and-cleanup.md)。
+
 跟踪 [NullMoth NVIDIA macOS 驱动](https://github.com/nullmoth/nvidia-macos-driver)，通过 **GitHub Actions** 构建 RTX 3060 的实验性 **H.264 NVENC 兼容覆盖包**。
 
 目标是继续使用新版驱动的显示、Metal 和浏览器修复，同时恢复 GA106 的硬件编码。这里不是完整显卡驱动，也不是已经验证可用于生产的发行版。
