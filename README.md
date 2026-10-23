@@ -1,5 +1,7 @@
 # RTX 3060 NVENC · macOS
 
+> **2026-10-23 官方包实测完成：**参考机器已从 2.3.7 + 本仓库覆盖包升级为 **官方 2.5.3**，没有重套旧补丁。Metal、3600 帧 H.264 硬编 / 解码像素资格（60.005 FPS，编码 p95 3.222 ms）和光梭生产自测通过，用户重启后仍加载四项 2.5.3 驱动。今后优先使用并验证官方包；本仓库旧候选和报告仅保留历史，不应再应用于 2.5.x。详见[完整安装和诊断探针适配记录](https://github.com/dixtdf/unraid-macos-rtx3060/blob/main/docs/17-driver-upgrade-2.5.3.md)。HEVC 本轮尚未验收，不将官方支持声明当作本机像素通过。
+
 > **2026-10-23 上游进展：**官方从 **2.4** 起已加入 RTX 20 / 30 的 H.264 / HEVC 硬编支持，最新正式版为 [2.5.3](https://github.com/nullmoth/nvidia-macos-driver/releases/tag/v2.5.3)，见[固定更新日志](https://github.com/nullmoth/nvidia-macos-driver/blob/75e2e28a55fef0e3c3001235c6d28c8cfae0019a/CHANGELOG.md)。后续优先实测完整官方包，通过后退出本仓库旧补丁路径；不能把旧偏移或二进制套到 2.5.x。本机本次只核对资料和清理升级残留，仍为已验收的 2.3.7 + 覆盖包，**尚未安装或验收 2.5.3**；下列 2.3.7 基线与报告继续保留。过程见[教程的更新与清理记录](https://github.com/dixtdf/unraid-macos-rtx3060/blob/main/docs/16-upstream-native-nvenc-and-cleanup.md)。
 
 跟踪 [NullMoth NVIDIA macOS 驱动](https://github.com/nullmoth/nvidia-macos-driver)，通过 **GitHub Actions** 构建 RTX 3060 的实验性 **H.264 NVENC 兼容覆盖包**。
