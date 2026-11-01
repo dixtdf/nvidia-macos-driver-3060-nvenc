@@ -46,7 +46,7 @@
 | 编码器 | `com.nvmtl.videoencoder.avc.nvenc`，请求与实际选择一致；hardware_required / hardware_used 均为真，software_fallback_allowed 为假 |
 | 实际加载编码库 | `libnvenc_h264_ga10x.dylib`，SHA256 `92985c5286ddc5c5dfb77ec04ea3364d92524e461abf93fb3646c4fe302488cb`，匹配官方清单 |
 | 解码侧 | 按探针规格禁用硬件解码（decoder_hardware_disabled_by_spec=true），硬件查询返回 -12900，像素校验走独立软件解码路径；这不构成硬件解码验收 |
-| 光梭 | `--self-test-codec` 30 帧生产路径：mode=hardware status=0，VT 硬件查询 value=1，`GLIDEBEAM_30_FRAME_HARDWARE_PIXELS_PASS`，`nvenc_layout_workaround=False`；探针结束后 RemoteHost 恢复运行 |
+| 光梭 | `--self-test-codec` 30 帧生产路径：mode=hardware status=0，VT 硬件查询 value=1，`GLIDEBEAM_30_FRAME_HARDWARE_PIXELS_PASS`，`nvenc_layout_workaround=False`；探针结束后 RemoteHost 恢复运行。用户升级后已经光梭客户端实际重连，确认远控体验正常（2026-11-01 用户确认） |
 | 显示 | 读回 1920×1080 @ 50 Hz（PiKVM 上限，与用户先前说明一致）。显示器刷新率与合成编码资格的 60 FPS 是两个范围，不把探针结果写成当前远控画面稳定 60 FPS |
 
 ## 探针复用与失败记录
@@ -69,4 +69,4 @@
 - HEVC 仍未在本机做像素验收；官方支持声明不当作本机通过。音频路径与端到端延迟本轮未另行重测。
 - 上游 `BASELINE-IDENTITY.json` 仍将 macOS 26 标为未资格；本记录是本机（macOS 26.7.1 / 25G241 + RTX 3060 GA106 LHR，PCI `10de:2504`）的独立证据，不改变上游资格状态，也不外推到其他机器、显卡或 macOS 版本。
 - 结果绑定 v2.6.6（提交 `470e391e8cf8d7e499cdabfa7f2daadb6e14bcfd`）与上文全部摘要；新发行包出现时不得沿用本轮结论。
-- **用户升级后的光梭客户端主观体验确认截至本记录撰写尚未回传**；该项只能由用户本人补充，自动探针结果与用户对 2.3.7 / 2.5.3 的既往确认都不冒充本次确认。
+- 用户已于升级当日（2026-11-01）通过光梭客户端实际重连并确认远控体验正常；该确认记录为用户主观体验，不替代上文任何未验收项，用户对 2.3.7 / 2.5.3 的既往确认也不与本次混同。

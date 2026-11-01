@@ -1,6 +1,6 @@
 # RTX 3060 NVENC · macOS
 
-> **2026-11-01 官方 2.6.6 实测完成：**参考机器已从官方 2.5.3 升级为 **官方 2.6.6**（固定提交 `470e391e8cf8d7e499cdabfa7f2daadb6e14bcfd`，包摘要三方核对；安装前新增完整冷备份并做 qcow2 源与克隆全量 SHA-256 对比）。一次重启后四项驱动加载为 2.6.6、无需重新批准；Metal、3600 帧 H.264 硬编 / 独立软件解码像素资格（60.0046 FPS，编码 p95 2.598 ms，优于 2.5.3 的 3.222 ms）、强制 IDR 与光梭生产自测通过。HEVC 仍未在本机验收；上游基线元数据仍将 macOS 26 标为未资格，本机结果只绑定本机。用户升级后的光梭客户端主观确认待补录。详见[完整升级记录](https://github.com/dixtdf/unraid-macos-rtx3060/blob/main/docs/18-driver-upgrade-2.6.6.md)（草稿：[docs/drafts/18-driver-upgrade-2.6.6.md](docs/drafts/18-driver-upgrade-2.6.6.md)）。
+> **2026-11-01 官方 2.6.6 实测完成：**参考机器已从官方 2.5.3 升级为 **官方 2.6.6**（固定提交 `470e391e8cf8d7e499cdabfa7f2daadb6e14bcfd`，包摘要三方核对；安装前新增完整冷备份并做 qcow2 源与克隆全量 SHA-256 对比）。一次重启后四项驱动加载为 2.6.6、无需重新批准；Metal、3600 帧 H.264 硬编 / 独立软件解码像素资格（60.0046 FPS，编码 p95 2.598 ms，优于 2.5.3 的 3.222 ms）、强制 IDR 与光梭生产自测通过。HEVC 仍未在本机验收；上游基线元数据仍将 macOS 26 标为未资格，本机结果只绑定本机。用户升级后已经光梭客户端实际重连并确认远控体验正常。详见[完整升级记录](https://github.com/dixtdf/unraid-macos-rtx3060/blob/main/docs/18-driver-upgrade-2.6.6.md)（草稿：[docs/drafts/18-driver-upgrade-2.6.6.md](docs/drafts/18-driver-upgrade-2.6.6.md)）。
 
 > **2026-10-23 官方包实测完成：**参考机器已从 2.3.7 + 本仓库覆盖包升级为 **官方 2.5.3**，没有重套旧补丁。Metal、3600 帧 H.264 硬编 / 解码像素资格（60.005 FPS，编码 p95 3.222 ms）和光梭生产自测通过，用户重启后仍加载四项 2.5.3 驱动。今后优先使用并验证官方包；本仓库旧候选和报告仅保留历史，不应再应用于 2.5.x。详见[完整安装和诊断探针适配记录](https://github.com/dixtdf/unraid-macos-rtx3060/blob/main/docs/17-driver-upgrade-2.5.3.md)。HEVC 本轮尚未验收，不将官方支持声明当作本机像素通过。
 
