@@ -1,4 +1,4 @@
-<!-- 草稿：目标路径为教程仓库 dixtdf/unraid-macos-rtx3060 的 docs/18-driver-upgrade-2.6.6.md；推送时可删除本行注释 -->
+<!-- 已于 2026-11-01 推送至教程仓库 dixtdf/unraid-macos-rtx3060 的 docs/18-driver-upgrade-2.6.6.md（提交 dd409bf）；本文件保留为存档副本，后续修改以教程仓库为准 -->
 
 # 官方 2.6.6 升级：完整冷备份与全量 H.264 复验
 
