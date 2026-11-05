@@ -2,18 +2,18 @@
   "schema_version": 1,
   "upstream_repository": "nullmoth/nvidia-macos-driver",
   "release": {
-    "id": 416737669,
-    "tag": "v2.3.7",
-    "commit": "e2b0e547a18841b7d944850b03c9e605df76720b",
-    "published_at": "2026-10-18T22:02:13Z",
-    "url": "https://github.com/nullmoth/nvidia-macos-driver/releases/tag/v2.3.7"
+    "id": 434897744,
+    "tag": "v2.7.2",
+    "commit": "18ba05f38b5eadea8b5ae05834bb51c61fb4c5c3",
+    "published_at": "2026-11-05T07:34:07Z",
+    "url": "https://github.com/nullmoth/nvidia-macos-driver/releases/tag/v2.7.2"
   },
   "asset": {
-    "id": 654583859,
-    "name": "nullmoth-nvidia-2.3.7.tar.gz",
-    "url": "https://github.com/nullmoth/nvidia-macos-driver/releases/download/v2.3.7/nullmoth-nvidia-2.3.7.tar.gz",
-    "size": 269039968,
-    "sha256": "237675011b81d60f8473a4f53ad08407e659e4a9fcf0dc571c5c15de579e39e6"
+    "id": 712501912,
+    "name": "nullmoth-nvidia-2.7.2.tar.gz",
+    "url": "https://github.com/nullmoth/nvidia-macos-driver/releases/download/v2.7.2/nullmoth-nvidia-2.7.2.tar.gz",
+    "size": 264616298,
+    "sha256": "928557fece27637b1184f5655833566e7d516b22708cc341b28d555055d8e50e"
   },
   "hardware_validation": "not-run"
 }
