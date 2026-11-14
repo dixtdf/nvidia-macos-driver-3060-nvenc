@@ -12,7 +12,7 @@ import sys
 
 ENCODER_ID = "com.nvmtl.videoencoder.avc.nvenc"
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
-TAG = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+\Z")
+TAG = re.compile(r"v[0-9]+\.[0-9]+(?:\.[0-9]+)?\Z")
 ROOT_KEYS = {
     "schema_version", "probe", "profile", "pass", "hardware_required", "software_fallback_allowed",
     "encoder_requested", "encoder_selected", "hardware_used", "gpu", "video", "results", "statuses", "errors",

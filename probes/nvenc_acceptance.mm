@@ -106,7 +106,7 @@ static NSString *LoadedEncoderSHA256() {
         const char *name = _dyld_get_image_name(i);
         if (!name) continue;
         NSString *path = [NSString stringWithUTF8String:name];
-        if (![path.lastPathComponent isEqualToString:@"libnvenc_h264.dylib"]) continue;
+        if (![path.lastPathComponent isEqualToString:@"libnvenc_h264_ga10x.dylib"]) continue;
         if (found) return @""; // Ambiguous libraries cannot qualify.
         NSData *bytes = [NSData dataWithContentsOfFile:path options:NSDataReadingMappedIfSafe error:nil];
         if (!bytes.length || bytes.length > 128 * 1024 * 1024) return @"";
@@ -275,7 +275,7 @@ int main(int argc, const char **argv) { @autoreleasepool {
         else { std::fprintf(stderr, "Unknown option.\n"); return 2; }
     }
     if ((profile != "smoke" && profile != "qualification") || fps != FPS || !reportPath) return 2;
-    const std::regex shaPattern("[0-9a-f]{64}"), tagPattern("v[0-9]+\\.[0-9]+\\.[0-9]+");
+    const std::regex shaPattern("[0-9a-f]{64}"), tagPattern("v[0-9]+\\.[0-9]+(\\.[0-9]+)?");
     if ((!candidateSHA.empty() && !std::regex_match(candidateSHA, shaPattern)) ||
         (!upstreamTag.empty() && !std::regex_match(upstreamTag, tagPattern)) ||
         (profile == "qualification" && (candidateSHA.empty() || upstreamTag.empty()))) return 2;

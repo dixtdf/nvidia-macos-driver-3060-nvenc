@@ -49,6 +49,12 @@ class HardwareReportTest(unittest.TestCase):
         self.assertEqual([], MODULE.validate_report(fixture("qualification"), profile="qualification",
             candidate_sha256="a" * 64, encoder_sha256="b" * 64, upstream_tag="v2.3.6"))
 
+    def test_two_component_upstream_tag(self):
+        report = fixture("qualification")
+        report["upstream_tag"] = "v3.0"
+        self.assertEqual([], MODULE.validate_report(report, profile="qualification",
+            candidate_sha256="a" * 64, encoder_sha256="b" * 64, upstream_tag="v3.0"))
+
     def test_unsupported_query_with_explicit_software_spec_is_valid(self):
         self.assertEqual([], MODULE.validate_report(unsupported_decoder_fixture(), profile="smoke"))
         self.assertEqual([], MODULE.validate_report(unsupported_decoder_fixture("qualification"),
